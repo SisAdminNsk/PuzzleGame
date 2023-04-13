@@ -1,13 +1,13 @@
 ﻿#include <iostream>
 #include <vector>
-#include <algorithm>
+#include "RandomShuffle.h"
 #include <SFML/Graphics.hpp>
 
 int main()
 {
     sf::RenderWindow window(sf::VideoMode(640, 800), "Pyatnashki");
     sf::Mouse mouse;// for mouse
-    sf::Clock clock; // starts the clock
+    sf::Clock clock;// starts the clock
 
     sf::Image pyatnaskiImage;
     sf::Texture pyatnaskiTexure;
@@ -59,7 +59,15 @@ int main()
     }
     emptyPuzzleSprite = allPuzzles[allPuzzles.size()-1];// get emptyPuzzle
     allPuzzles.pop_back();// delete this puzzle, after getting him
-    std::random_shuffle(allPuzzles.begin(),allPuzzles.end());// shake our pazzles
+    RandomShuffleClass shuffle;
+    std::vector<position> shuffledPosition = shuffle.getAllPositions();// unpackage random positons to shuffledPosition's
+    // set random position's
+    int iter = 0;
+    for (sf::Sprite& puzzle : allPuzzles)
+    {
+        puzzle.setPosition(shuffledPosition[iter].xCoord,shuffledPosition[iter].yCoord);
+        iter++;
+    }
     // GAME CICLE 
     int uniqId = 0;
     int idCounter = 0;
