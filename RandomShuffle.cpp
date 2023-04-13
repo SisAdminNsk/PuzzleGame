@@ -13,14 +13,17 @@ void RandomShuffleClass::fillAllPosotions()
 
 std::vector <position>& RandomShuffleClass::getAllPositions() { return allPositions; }
 
-RandomShuffleClass::RandomShuffleClass()
-{
-	fillAllPosotions();
-	MakeShuffle();
-}
+RandomShuffleClass::RandomShuffleClass(){fillAllPosotions();}
 
-void RandomShuffleClass::MakeShuffle()
+void RandomShuffleClass::MakeShuffle(std::vector<sf::Sprite>& allPuzzles)
 {
 	srand(time(NULL));
 	std::random_shuffle(allPositions.begin(),allPositions.end());
+
+	int iter = 0;
+    for (sf::Sprite& puzzle : allPuzzles)
+    {
+        puzzle.setPosition(allPositions[iter].xCoord, allPositions[iter].yCoord);
+        iter++;
+    }
 }
