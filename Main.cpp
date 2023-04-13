@@ -2,21 +2,24 @@
 #include <vector>
 #include "RandomShuffle.h"
 #include <SFML/Graphics.hpp>
+#include "LoadFromFile.h"
+#include "Constants.h"
 
 int main()
 {
-    sf::RenderWindow window(sf::VideoMode(640, 800), "Pyatnashki");
+    sf::RenderWindow window(sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "Pyatnashki");
     sf::Mouse mouse;// for mouse
     sf::Clock clock;// starts the clock
-
-    sf::Image pyatnaskiImage;
-    sf::Texture pyatnaskiTexure;
+    LoadFromFile files;// class for loading files
+    
     sf::Sprite pyatnaskaSprite;// for pyatnashka 
     sf::Sprite emptyPuzzleSprite;// special serialized sprite for empty symbol
-
-    sf::Image backgroundImage;
-    sf::Texture backgroundTexture;
     sf::Sprite backgroundSprite;// for background
+    sf::Sprite reloadButtonSprite;// for reloadButton
+    
+    pyatnaskaSprite = files.loadPyatnashkiSprite();// load sprite from file
+    backgroundSprite = files.loadBackgroundSprite();// load background sprite
+    reloadButtonSprite = files.loadReloadButtonSprite();
 
     sf::Font myFont;// for arial.ttf font 
     sf::Text stepCounter;// showing counter of game steps
@@ -25,35 +28,25 @@ int main()
 
     int steps = 0;// steps counter
 
-    // Loading files for game //
-    pyatnaskiImage.loadFromFile("Images/pyatnashki.png"); // load image from file
-    pyatnaskiTexure.loadFromImage(pyatnaskiImage);// load texture from loaded before image
-    pyatnaskaSprite.setTexture(pyatnaskiTexure);// set spirte from texture 
-
-    backgroundImage.loadFromFile("Images/background.png");
-    backgroundTexture.loadFromImage(backgroundImage);
-    backgroundSprite.setTexture(backgroundTexture);
-
-    myFont.loadFromFile("Fonts/arial.ttf");
+    myFont = files.loadFont();// load font
     stepCounter.setFont(myFont);
-    stepCounter.setCharacterSize(50);// set font size
-    stepCounter.setPosition(10, 25);
+    stepCounter.setCharacterSize(FONT_SIZE);// set font size
+    stepCounter.setPosition(STEP_COUNTER_XCOORD, STEP_COUNTER_YCOORD);
     stepCounter.setString("STEPS: " + std::to_string(steps));// when game start counter = 0
 
     timeMessage.setFont(myFont);
-    timeMessage.setCharacterSize(50);
-    timeMessage.setPosition(450, 25);
-    // End of loading game's files //
+    timeMessage.setCharacterSize(FONT_SIZE);
+    timeMessage.setPosition(TIME_MESSAGE_XCOORD, TIME_MESSAGE_YCOORD);
   
     sf::Time elapsedTime = clock.getElapsedTime();// lounch time;
 
     std::vector<sf::Sprite> allPuzzles;// will contains all pyatnashki sprite's
-    for (int i = 0, yCoord = 0; i < 4; i++, yCoord += 160) 
+    for (int i = 0, yCoord = 0; i < 4; i++, yCoord += PUZZLE_WIDTH)
     {
-        for (int j = 0, xCoord = 0; j < 4; j++, xCoord += 160)
+        for (int j = 0, xCoord = 0; j < 4; j++, xCoord += PUZZLE_WIDTH)
         {
-            pyatnaskaSprite.setTextureRect(sf::IntRect(yCoord, xCoord, 160, 160));// makes sprites for pyatnashki
-            pyatnaskaSprite.setPosition(xCoord, yCoord + 160);
+            pyatnaskaSprite.setTextureRect(sf::IntRect(yCoord, xCoord, PUZZLE_WIDTH, PUZZLE_HEIGHT));// makes sprites for pyatnashki
+            pyatnaskaSprite.setPosition(xCoord, yCoord + PUZZLE_WIDTH);
             allPuzzles.push_back(pyatnaskaSprite);// add pyatnashki to container
         }
     }
@@ -62,16 +55,11 @@ int main()
     RandomShuffleClass shuffle;
     std::vector<position> shuffledPosition = shuffle.getAllPositions();// unpackage random positons to shuffledPosition's
     // set random position's
-    int iter = 0;
-    for (sf::Sprite& puzzle : allPuzzles)
-    {
-        puzzle.setPosition(shuffledPosition[iter].xCoord,shuffledPosition[iter].yCoord);
-        iter++;
-    }
-    // GAME CICLE 
+    shuffle.MakeShuffle(allPuzzles);
     int uniqId = 0;
     int idCounter = 0;
     bool isMove = false;
+    // GAME CICLE 
     while (window.isOpen())// run the program as long as the window is open
     {
         sf::Event event;// check all the window's events that were triggered since the last iteration of the loop
@@ -89,8 +77,8 @@ int main()
                     {
                         if (pyatnaska.getGlobalBounds().contains(mouse.getPosition(window).x, mouse.getPosition(window).y))
                         {
-                            if (abs(emptyPuzzleSprite.getPosition().x - pyatnaska.getPosition().x) <= 160 &&
-                                abs(emptyPuzzleSprite.getPosition().y - pyatnaska.getPosition().y) <= 160)
+                            if (abs(emptyPuzzleSprite.getPosition().x - pyatnaska.getPosition().x) <= PUZZLE_WIDTH &&
+                                abs(emptyPuzzleSprite.getPosition().y - pyatnaska.getPosition().y) <= PUZZLE_HEIGHT)
                             {
                                 if ((pyatnaska.getPosition().x == emptyPuzzleSprite.getPosition().x) ||
                                     pyatnaska.getPosition().y == emptyPuzzleSprite.getPosition().y) 
@@ -102,8 +90,17 @@ int main()
                                 }
                             }
                         }
+
+                        if (reloadButtonSprite.getGlobalBounds().contains(mouse.getPosition(window).x, mouse.getPosition(window).y)) \
+                        {
+                            steps = 0;
+                            emptyPuzzleSprite.setPosition(EMPTY_PUZZLE_XCOORD, EMPTY_PUZZLE_YCOORD);
+                            shuffle.MakeShuffle(allPuzzles);// make shuffle 
+                            stepCounter.setString("STEPS: " + std::to_string(0));
+                            clock.restart();// reset game time
+                        }
                     }
-                }  
+                }
                 idCounter++;// inc uniq id counter
             }
         }
@@ -121,14 +118,16 @@ int main()
         timeMessage.setString(std::to_string(int(elapsedTime.asSeconds())) + " Sec");// update time;
 
         window.clear();
+        // drawing on the screen
         window.draw(backgroundSprite);// drawing background
+        window.draw(reloadButtonSprite);// drawing reloadButton sprite
         window.draw(stepCounter);// drawing steps
         window.draw(timeMessage);// drawing timer
         window.draw(emptyPuzzleSprite);// draw empty puzzle sprite
 
         for (int i = 0; i < allPuzzles.size(); i++) // drawing all pyatnashka puzzle's
             window.draw(allPuzzles[i]);
-   
+        // stop drawing on the screen
         window.display();
     }
 }
