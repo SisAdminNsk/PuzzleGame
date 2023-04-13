@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <algorithm>
+#include <SFML/Graphics.hpp>
 #include <ctime>
 
 struct position
@@ -19,5 +20,5 @@ private:
 public:
 	std::vector<position>& getAllPositions();// return all shuffling position's
 	RandomShuffleClass();// constructor
-	void MakeShuffle();// finish shuffle func
+	void MakeShuffle(std::vector<sf::Sprite>& allPuzzles);// finish shuffle func
 };
