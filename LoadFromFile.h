@@ -26,4 +26,3 @@ public:
     sf::Sprite loadBackgroundSprite();
     sf::Font loadFont();
 };
-
