@@ -3,12 +3,7 @@
 #include <algorithm>
 #include <SFML/Graphics.hpp>
 #include <ctime>
-
-struct position
-{
-	int xCoord;
-	int yCoord;
-};
+#include "PointStruct.h"
 
 // class for random generation of puzzles positions
 class RandomShuffleClass 
